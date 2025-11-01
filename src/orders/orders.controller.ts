@@ -24,12 +24,7 @@ import {
   UpdateOrderRequestDto,
   OrderResponseDto,
 } from '@/orders';
-
-interface AuthenticatedRequest extends Express.Request {
-  user?: {
-    id: number;
-  };
-}
+import AuthenticatedRequest from '@/users/interfaces/AuthenticatedRequest';
 
 @ApiTags('orders')
 @Controller('orders')
