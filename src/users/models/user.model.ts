@@ -5,6 +5,7 @@ import {
   DataType,
   HasMany,
   BeforeCreate,
+  BeforeUpdate,
 } from 'sequelize-typescript';
 import { Order } from '@/orders';
 import * as bcrypt from 'bcrypt';
@@ -67,6 +68,13 @@ export class User extends Model<User> {
 
   @BeforeCreate
   static async hashPassword(instance: User) {
+    if (instance.password && !instance.password.startsWith('$2')) {
+      instance.password = await bcrypt.hash(instance.password, 10);
+    }
+  }
+
+  @BeforeUpdate
+  static async hashPasswordOnUpdate(instance: User) {
     if (instance.password && !instance.password.startsWith('$2')) {
       instance.password = await bcrypt.hash(instance.password, 10);
     }
