@@ -8,6 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { Order } from '@/orders';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from './user-role.enum';
 
 @Table({ tableName: 'users' })
 export class User extends Model<User> {
@@ -44,10 +45,10 @@ export class User extends Model<User> {
   lastName: string;
 
   @Column({
-    type: DataType.ENUM('user', 'admin'),
-    defaultValue: 'user',
+    type: DataType.ENUM(...Object.values(UserRole)),
+    defaultValue: UserRole.USER,
   })
-  role: string;
+  role: UserRole;
 
   @Column({
     type: DataType.DATE,

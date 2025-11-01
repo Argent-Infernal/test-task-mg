@@ -1,4 +1,5 @@
 import { QueryInterface, DataTypes } from 'sequelize';
+import { UserRole } from '@/users/models';
 
 export default {
   async up(queryInterface: QueryInterface) {
@@ -26,8 +27,8 @@ export default {
         allowNull: false,
       },
       role: {
-        type: DataTypes.ENUM('user', 'admin'),
-        defaultValue: 'user',
+        type: DataTypes.ENUM(UserRole.USER, UserRole.ADMIN),
+        defaultValue: UserRole.USER,
       },
       createdAt: {
         type: DataTypes.DATE,

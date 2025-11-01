@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRole } from '@/users/models';
 
 export class UserResponseDto {
   @ApiProperty({ description: 'ID пользователя', example: 1 })
@@ -18,10 +19,10 @@ export class UserResponseDto {
 
   @ApiProperty({
     description: 'Роль пользователя',
-    example: 'user',
-    enum: ['user', 'admin'],
+    example: UserRole.USER,
+    enum: UserRole,
   })
-  role: string;
+  role: UserRole;
 
   @ApiProperty({
     description: 'Дата создания',
