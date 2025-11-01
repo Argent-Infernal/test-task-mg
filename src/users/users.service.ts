@@ -2,41 +2,38 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import * as bcrypt from 'bcrypt';
 import { User } from '@/users/models';
 import { CreateUserRequestDto, UpdateUserRequestDto } from '@/users/dto';
+import { IUserRepository, USER_REPOSITORY } from '@/users/interfaces';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User)
-    private userModel: typeof User,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
   ) {}
 
   async create(createUserDto: CreateUserRequestDto): Promise<User> {
-    const existingUser = await this.userModel.findOne({
-      where: { email: createUserDto.email },
-    });
+    const existingUser = await this.userRepository.findByEmail(
+      createUserDto.email,
+    );
 
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
-    return this.userModel.create(createUserDto);
+    return this.userRepository.create(createUserDto);
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.findAll({
-      attributes: { exclude: ['password'] },
-    });
+    return this.userRepository.findAll();
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.userModel.findByPk(id, {
-      attributes: { exclude: ['password'] },
-    });
+    const user = await this.userRepository.findById(id);
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -46,29 +43,28 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ where: { email } });
+    return this.userRepository.findByEmail(email);
   }
 
   async update(id: number, updateUserDto: UpdateUserRequestDto): Promise<User> {
     const user = await this.findOne(id);
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingUser = await this.userModel.findOne({
-        where: { email: updateUserDto.email },
-      });
+      const existingUser = await this.userRepository.findByEmail(
+        updateUserDto.email,
+      );
 
       if (existingUser) {
         throw new ConflictException('User with this email already exists');
       }
     }
 
-    await user.update(updateUserDto);
-    return this.findOne(id);
+    return this.userRepository.update(id, updateUserDto);
   }
 
   async remove(id: number): Promise<void> {
-    const user = await this.findOne(id);
-    await user.destroy();
+    await this.findOne(id);
+    await this.userRepository.delete(id);
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
