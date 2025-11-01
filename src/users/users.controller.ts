@@ -1,8 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserRequestDto } from './dto/create-user-request.dto';
+import { UpdateUserRequestDto } from './dto/update-user-request.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -12,46 +30,71 @@ export class UsersController {
   @Post()
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Создать нового пользователя' })
-  @ApiResponse({ status: 201, description: 'Пользователь успешно создан' })
-  @ApiResponse({ status: 409, description: 'Пользователь с таким email уже существует' })
-  @ApiBody({ type: CreateUserDto })
-  create(@Body() createUserDto: CreateUserDto) {
+  @ApiResponse({
+    status: 201,
+    description: 'Пользователь успешно создан',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Пользователь с таким email уже существует',
+  })
+  @ApiBody({ type: CreateUserRequestDto })
+  async create(
+    @Body() createUserDto: CreateUserRequestDto,
+  ): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Получить список всех пользователей' })
-  @ApiResponse({ status: 200, description: 'Список пользователей успешно получен' })
-  findAll() {
+  @ApiResponse({
+    status: 200,
+    description: 'Список пользователей успешно получен',
+    type: [UserResponseDto],
+  })
+  async findAll(): Promise<UserResponseDto[]> {
     return this.usersService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить пользователя по ID' })
-  @ApiParam({ name: 'id', description: 'ID пользователя' })
-  @ApiResponse({ status: 200, description: 'Пользователь найден' })
+  @ApiParam({ name: 'id', description: 'ID пользователя', type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Пользователь найден',
+    type: UserResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Пользователь не найден' })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserResponseDto> {
+    return this.usersService.findOne(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Обновить данные пользователя' })
-  @ApiParam({ name: 'id', description: 'ID пользователя' })
-  @ApiBody({ type: UpdateUserDto })
-  @ApiResponse({ status: 200, description: 'Пользователь успешно обновлен' })
+  @ApiParam({ name: 'id', description: 'ID пользователя', type: Number })
+  @ApiBody({ type: UpdateUserRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Пользователь успешно обновлен',
+    type: UserResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Пользователь не найден' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserRequestDto,
+  ): Promise<UserResponseDto> {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Удалить пользователя' })
-  @ApiParam({ name: 'id', description: 'ID пользователя' })
+  @ApiParam({ name: 'id', description: 'ID пользователя', type: Number })
   @ApiResponse({ status: 200, description: 'Пользователь успешно удален' })
   @ApiResponse({ status: 404, description: 'Пользователь не найден' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.usersService.remove(id);
   }
 }
-

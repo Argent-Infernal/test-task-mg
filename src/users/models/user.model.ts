@@ -1,5 +1,12 @@
-import { Table, Column, Model, DataType, HasMany, BeforeCreate } from 'sequelize-typescript';
-import { Order } from '../../orders/models/order.model';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  HasMany,
+  BeforeCreate,
+} from 'sequelize-typescript';
+import { Order } from '@/orders';
 import * as bcrypt from 'bcrypt';
 
 @Table({ tableName: 'users' })
@@ -64,4 +71,3 @@ export class User extends Model<User> {
     }
   }
 }
-

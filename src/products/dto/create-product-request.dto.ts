@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateProductDto {
+export class CreateProductRequestDto {
   @ApiProperty({ description: 'Название товара', example: 'Ноутбук ксяоми' })
   @IsString()
   @IsNotEmpty()

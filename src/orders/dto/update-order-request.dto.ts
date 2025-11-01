@@ -1,8 +1,8 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { OrderStatus } from '../models/order.model';
+import { OrderStatus } from '@/orders';
 
-export class UpdateOrderDto {
+export class UpdateOrderRequestDto {
   @ApiPropertyOptional({
     description: 'Статус заказа',
     enum: OrderStatus,

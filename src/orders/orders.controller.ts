@@ -1,8 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, ParseIntPipe, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe,
+  Request,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import {
+  CreateOrderRequestDto,
+  UpdateOrderRequestDto,
+  OrderResponseDto,
+} from '@/orders';
+
+interface AuthenticatedRequest extends Express.Request {
+  user?: {
+    id: number;
+  };
+}
 
 @ApiTags('orders')
 @Controller('orders')
@@ -12,58 +39,90 @@ export class OrdersController {
   @Post()
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Создать новый заказ' })
-  @ApiResponse({ status: 201, description: 'Заказ успешно создан' })
+  @ApiResponse({
+    status: 201,
+    description: 'Заказ успешно создан',
+    type: OrderResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Неверные данные заказа' })
-  @ApiBody({ type: CreateOrderDto })
-  create(@Request() req, @Body() createOrderDto: CreateOrderDto) {
+  @ApiBody({ type: CreateOrderRequestDto })
+  async create(
+    @Request() req: AuthenticatedRequest,
+    @Body() createOrderDto: CreateOrderRequestDto,
+  ): Promise<OrderResponseDto> {
     const userId = req.user?.id || 1;
     return this.ordersService.create(userId, createOrderDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Получить список всех заказов' })
-  @ApiResponse({ status: 200, description: 'Список заказов успешно получен' })
-  findAll(@Request() req) {
+  @ApiResponse({
+    status: 200,
+    description: 'Список заказов успешно получен',
+    type: [OrderResponseDto],
+  })
+  async findAll(
+    @Request() req: AuthenticatedRequest,
+  ): Promise<OrderResponseDto[]> {
     const userId = req.user?.id;
     return this.ordersService.findAll(userId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Получить заказ по ID' })
-  @ApiParam({ name: 'id', description: 'ID заказа' })
-  @ApiResponse({ status: 200, description: 'Заказ найден' })
+  @ApiParam({ name: 'id', description: 'ID заказа', type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Заказ найден',
+    type: OrderResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Заказ не найден' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<OrderResponseDto> {
     return this.ordersService.findOne(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Обновить данные заказа' })
-  @ApiParam({ name: 'id', description: 'ID заказа' })
-  @ApiBody({ type: UpdateOrderDto })
-  @ApiResponse({ status: 200, description: 'Заказ успешно обновлен' })
+  @ApiParam({ name: 'id', description: 'ID заказа', type: Number })
+  @ApiBody({ type: UpdateOrderRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Заказ успешно обновлен',
+    type: OrderResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Заказ не найден' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateOrderDto: UpdateOrderDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateOrderDto: UpdateOrderRequestDto,
+  ): Promise<OrderResponseDto> {
     return this.ordersService.update(id, updateOrderDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Удалить заказ' })
-  @ApiParam({ name: 'id', description: 'ID заказа' })
+  @ApiParam({ name: 'id', description: 'ID заказа', type: Number })
   @ApiResponse({ status: 200, description: 'Заказ успешно удален' })
   @ApiResponse({ status: 404, description: 'Заказ не найден' })
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.ordersService.remove(id);
   }
 
   @Post(':id/cancel')
   @ApiOperation({ summary: 'Отменить заказ' })
-  @ApiParam({ name: 'id', description: 'ID заказа' })
-  @ApiResponse({ status: 200, description: 'Заказ успешно отменен' })
+  @ApiParam({ name: 'id', description: 'ID заказа', type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Заказ успешно отменен',
+    type: OrderResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Заказ не найден' })
-  cancel(@Param('id', ParseIntPipe) id: number, @Request() req) {
+  async cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<OrderResponseDto> {
     const userId = req.user?.id || 1;
     return this.ordersService.cancelOrder(id, userId);
   }
 }
-

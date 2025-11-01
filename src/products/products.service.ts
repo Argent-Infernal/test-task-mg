@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Product } from './models/product.model';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
 import { Sequelize } from 'sequelize-typescript';
+import { Product } from '@/products/models';
+import {
+  CreateProductRequestDto,
+  UpdateProductRequestDto,
+} from '@/products/dto';
 
 @Injectable()
 export class ProductsService {
@@ -12,7 +18,7 @@ export class ProductsService {
     private productModel: typeof Product,
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
+  async create(createProductDto: CreateProductRequestDto): Promise<Product> {
     return this.productModel.create(createProductDto);
   }
 
@@ -32,7 +38,10 @@ export class ProductsService {
     return product;
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    updateProductDto: UpdateProductRequestDto,
+  ): Promise<Product> {
     const product = await this.findOne(id);
 
     await product.update(updateProductDto);
@@ -68,4 +77,3 @@ export class ProductsService {
     } as any);
   }
 }
-

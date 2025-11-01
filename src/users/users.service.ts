@@ -1,9 +1,12 @@
-import { Injectable, Inject, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from './models/user.model';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { User } from '@/users/models';
+import { CreateUserRequestDto, UpdateUserRequestDto } from '@/users/dto';
 
 @Injectable()
 export class UsersService {
@@ -12,7 +15,7 @@ export class UsersService {
     private userModel: typeof User,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserRequestDto): Promise<User> {
     const existingUser = await this.userModel.findOne({
       where: { email: createUserDto.email },
     });
@@ -22,7 +25,7 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    
+
     return this.userModel.create({
       ...createUserDto,
       password: hashedPassword,
@@ -51,7 +54,7 @@ export class UsersService {
     return this.userModel.findOne({ where: { email } });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: number, updateUserDto: UpdateUserRequestDto): Promise<User> {
     const user = await this.findOne(id);
 
     if (updateUserDto.password) {
@@ -69,14 +72,13 @@ export class UsersService {
 
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findByEmail(email);
-    
+
     if (!user) {
       return null;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
+
     return user;
   }
 }
-

@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Sequelize } from 'sequelize-typescript';
-import { Order, OrderStatus } from './models/order.model';
-import { OrderItem } from './models/order-item.model';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { ProductsService } from '../products/products.service';
+import { Order, OrderItem, OrderStatus } from '@/orders/models';
+import { ProductsService } from '@/products/products.service';
+import { CreateOrderRequestDto, UpdateOrderRequestDto } from '@/orders/dto';
 
 @Injectable()
 export class OrdersService {
@@ -17,7 +18,10 @@ export class OrdersService {
     private productsService: ProductsService,
   ) {}
 
-  async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
+  async create(
+    userId: number,
+    createOrderDto: CreateOrderRequestDto,
+  ): Promise<Order> {
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       throw new BadRequestException('Order must have at least one item');
     }
@@ -27,9 +31,11 @@ export class OrdersService {
 
     for (const item of createOrderDto.items) {
       const product = await this.productsService.findOne(item.productId);
-      
+
       if (product.stock < item.quantity) {
-        throw new BadRequestException(`Insufficient stock for product ${product.name}`);
+        throw new BadRequestException(
+          `Insufficient stock for product ${product.name}`,
+        );
       }
 
       const itemTotal = product.price * item.quantity;
@@ -53,14 +59,16 @@ export class OrdersService {
       status: OrderStatus.PENDING,
     });
 
-    await Promise.all(orderItems.map(item => item.update({ orderId: order.id })));
+    await Promise.all(
+      orderItems.map((item) => item.update({ orderId: order.id })),
+    );
 
     return this.findOne(order.id);
   }
 
   async findAll(userId?: number): Promise<Order[]> {
     const where = userId ? { userId } : {};
-    
+
     return this.orderModel.findAll({
       where,
       include: [
@@ -96,7 +104,10 @@ export class OrdersService {
     return order;
   }
 
-  async update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
+  async update(
+    id: number,
+    updateOrderDto: UpdateOrderRequestDto,
+  ): Promise<Order> {
     const order = await this.findOne(id);
 
     await order.update(updateOrderDto);
@@ -106,7 +117,7 @@ export class OrdersService {
 
   async remove(id: number): Promise<void> {
     const order = await this.findOne(id);
-    
+
     await order.destroy();
   }
 
@@ -123,4 +134,3 @@ export class OrdersService {
     return this.findOne(id);
   }
 }
-

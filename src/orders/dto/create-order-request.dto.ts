@@ -5,7 +5,6 @@ import {
   Min,
   IsString,
   IsOptional,
-  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -21,7 +20,7 @@ export class OrderItemDto {
   quantity: number;
 }
 
-export class CreateOrderDto {
+export class CreateOrderRequestDto {
   @ApiProperty({
     description: 'Список товаров в заказе',
     type: [OrderItemDto],

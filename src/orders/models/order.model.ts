@@ -1,4 +1,12 @@
-import { Table, Column, Model, DataType, BelongsTo, HasMany, ForeignKey } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  BelongsTo,
+  HasMany,
+  ForeignKey,
+} from 'sequelize-typescript';
 import { User } from '@/users';
 import { OrderItem } from '@/orders';
 
@@ -62,4 +70,3 @@ export class Order extends Model<Order> {
   @HasMany(() => OrderItem)
   items: OrderItem[];
 }
-
