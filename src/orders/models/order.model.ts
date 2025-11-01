@@ -1,6 +1,6 @@
 import { Table, Column, Model, DataType, BelongsTo, HasMany, ForeignKey } from 'sequelize-typescript';
-import { User } from '../../users/models/user.model';
-import { OrderItem } from './order-item.model';
+import { User } from '@/users';
+import { OrderItem } from '@/orders';
 
 export enum OrderStatus {
   PENDING = 'pending',
