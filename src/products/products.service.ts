@@ -2,34 +2,35 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { Product } from '@/products/models';
 import {
   CreateProductRequestDto,
   UpdateProductRequestDto,
 } from '@/products/dto';
+import { IProductRepository, PRODUCT_REPOSITORY } from '@/products';
 
 @Injectable()
 export class ProductsService {
   constructor(
-    @InjectModel(Product)
-    private productModel: typeof Product,
+    @Inject(PRODUCT_REPOSITORY)
+    private readonly productRepository: IProductRepository,
   ) {}
 
   async create(createProductDto: CreateProductRequestDto): Promise<Product> {
-    return this.productModel.create(createProductDto);
+    return this.productRepository.create(createProductDto);
   }
 
   async findAll(): Promise<Product[]> {
-    return this.productModel.findAll({
+    return this.productRepository.findAll({
       order: [['createdAt', 'DESC']],
     });
   }
 
   async findOne(id: number): Promise<Product> {
-    const product = await this.productModel.findByPk(id);
+    const product = await this.productRepository.findById(id);
 
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
@@ -72,8 +73,8 @@ export class ProductsService {
   }
 
   async searchByName(name: string): Promise<Product[]> {
-    return this.productModel.findAll({
+    return this.productRepository.findAll({
       where: Sequelize.literal(`name ILIKE '%${name}%'`),
-    } as any);
+    });
   }
 }

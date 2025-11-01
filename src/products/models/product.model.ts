@@ -1,5 +1,4 @@
-import { Table, Column, Model, DataType, BelongsToMany } from 'sequelize-typescript';
-import { OrderItem } from '../../orders/models/order-item.model';
+import { Table, Column, Model, DataType } from 'sequelize-typescript';
 
 @Table({ tableName: 'products' })
 export class Product extends Model<Product> {
@@ -50,4 +49,3 @@ export class Product extends Model<Product> {
   })
   updatedAt: Date;
 }
-
