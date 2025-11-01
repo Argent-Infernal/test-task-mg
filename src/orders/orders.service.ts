@@ -2,26 +2,29 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Order, OrderItem, OrderStatus } from '@/orders/models';
+import { Order, OrderStatus } from '@/orders/models';
 import { ProductsService } from '@/products/products.service';
 import { CreateOrderRequestDto, UpdateOrderRequestDto } from '@/orders/dto';
+import { IOrderRepository, ORDER_REPOSITORY } from '@/orders';
+import { UsersService } from '@/users/users.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
-    @InjectModel(Order)
-    private orderModel: typeof Order,
-    @InjectModel(OrderItem)
-    private orderItemModel: typeof OrderItem,
-    private productsService: ProductsService,
+    @Inject(ORDER_REPOSITORY)
+    private readonly orderRepository: IOrderRepository,
+    private readonly productsService: ProductsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(
     userId: number,
     createOrderDto: CreateOrderRequestDto,
   ): Promise<Order> {
+    await this.usersService.findOne(userId);
+
     if (!createOrderDto.items || createOrderDto.items.length === 0) {
       throw new BadRequestException('Order must have at least one item');
     }
@@ -41,61 +44,29 @@ export class OrdersService {
       const itemTotal = product.price * item.quantity;
       total += itemTotal;
 
-      const orderItem = await this.orderItemModel.create({
+      orderItems.push({
         productId: item.productId,
         quantity: item.quantity,
         price: product.price,
       });
 
-      orderItems.push(orderItem);
-
       await this.productsService.decreaseStock(item.productId, item.quantity);
     }
 
-    const order = await this.orderModel.create({
+    return this.orderRepository.create(
       userId,
       total,
-      shippingAddress: createOrderDto.shippingAddress || '',
-      status: OrderStatus.PENDING,
-    });
-
-    await Promise.all(
-      orderItems.map((item) => item.update({ orderId: order.id })),
+      createOrderDto.shippingAddress || '',
+      orderItems,
     );
-
-    return this.findOne(order.id);
   }
 
   async findAll(userId?: number): Promise<Order[]> {
-    const where = userId ? { userId } : {};
-
-    return this.orderModel.findAll({
-      where,
-      include: [
-        {
-          association: 'user',
-          attributes: { exclude: ['password'] },
-        },
-        {
-          association: 'items',
-        },
-      ],
-      order: [['createdAt', 'DESC']],
-    });
+    return this.orderRepository.findAll(userId);
   }
 
   async findOne(id: number): Promise<Order> {
-    const order = await this.orderModel.findByPk(id, {
-      include: [
-        {
-          association: 'user',
-          attributes: { exclude: ['password'] },
-        },
-        {
-          association: 'items',
-        },
-      ],
-    });
+    const order = await this.orderRepository.findById(id);
 
     if (!order) {
       throw new NotFoundException(`Order with ID ${id} not found`);
@@ -108,17 +79,14 @@ export class OrdersService {
     id: number,
     updateOrderDto: UpdateOrderRequestDto,
   ): Promise<Order> {
-    const order = await this.findOne(id);
+    await this.findOne(id);
 
-    await order.update(updateOrderDto);
-
-    return this.findOne(id);
+    return this.orderRepository.update(id, updateOrderDto);
   }
 
   async remove(id: number): Promise<void> {
-    const order = await this.findOne(id);
-
-    await order.destroy();
+    await this.findOne(id);
+    await this.orderRepository.delete(id);
   }
 
   async cancelOrder(id: number, userId: number): Promise<Order> {
@@ -128,9 +96,6 @@ export class OrdersService {
       throw new BadRequestException('Cannot cancel delivered order');
     }
 
-    order.status = OrderStatus.CANCELLED;
-    await order.save();
-
-    return this.findOne(id);
+    return this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
   }
 }
