@@ -6,8 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  UsePipes,
-  ValidationPipe,
   ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -18,9 +16,11 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserRequestDto } from './dto/create-user-request.dto';
-import { UpdateUserRequestDto } from './dto/update-user-request.dto';
-import { UserResponseDto } from './dto/user-response.dto';
+import {
+  CreateUserRequestDto,
+  UpdateUserRequestDto,
+  UserResponseDto,
+} from '@/users/dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -28,7 +28,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Создать нового пользователя' })
   @ApiResponse({
     status: 201,

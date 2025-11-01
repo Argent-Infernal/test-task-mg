@@ -4,7 +4,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { User } from './models/user.model';
 import { UserRepository } from './repositories/user.repository';
-import { IUserRepository, USER_REPOSITORY } from './interfaces/user-repository.interface';
+import { USER_REPOSITORY } from './interfaces/user-repository.interface';
 
 @Module({
   imports: [SequelizeModule.forFeature([User])],
@@ -19,4 +19,3 @@ import { IUserRepository, USER_REPOSITORY } from './interfaces/user-repository.i
   exports: [UsersService],
 })
 export class UsersModule {}
-

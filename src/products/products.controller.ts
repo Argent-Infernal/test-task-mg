@@ -7,8 +7,6 @@ import {
   Param,
   Delete,
   Query,
-  UsePipes,
-  ValidationPipe,
   ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -32,7 +30,6 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Создать новый товар' })
   @ApiResponse({
     status: 201,

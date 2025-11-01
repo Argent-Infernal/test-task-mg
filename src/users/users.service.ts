@@ -5,15 +5,18 @@ import {
   Inject,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { User } from '@/users/models';
-import { CreateUserRequestDto, UpdateUserRequestDto } from '@/users/dto';
-import { IUserRepository, USER_REPOSITORY } from '@/users/interfaces';
+import {
+  User,
+  CreateUserRequestDto,
+  UpdateUserRequestDto,
+  IUserRepository,
+  USER_REPOSITORY,
+} from '@/users';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: IUserRepository,
+    @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
   ) {}
 
   async create(createUserDto: CreateUserRequestDto): Promise<User> {
@@ -67,6 +70,7 @@ export class UsersService {
     await this.userRepository.delete(id);
   }
 
+  //Скорее всего метод для аутентификации
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.findByEmail(email);
 
